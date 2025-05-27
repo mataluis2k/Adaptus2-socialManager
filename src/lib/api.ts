@@ -19,10 +19,28 @@ export const clearAuthToken = () => {
 };
 
 const handleResponse = async (response: Response) => {
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    // JSON parsing failed
+    if (!response.ok) {
+      const message = response.statusText || 'API request failed';
+      throw new Error(`Error ${response.status}: ${message}`);
+    } else {
+      // This case should ideally not happen for a 2xx response
+      throw new Error(`Error ${response.status}: Failed to parse successful response from API.`);
+    }
   }
+
+  if (!response.ok) {
+    if (data && data.error) {
+      throw new Error(`Error ${response.status}: ${data.error}`);
+    } else {
+      throw new Error(`Error ${response.status}: API error`);
+    }
+  }
+
   return data;
 };
 

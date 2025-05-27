@@ -12,7 +12,7 @@ export interface Post {
   id: string;
   content: string;
   platforms: SocialPlatform[];
-  scheduledFor?: Date;
+  scheduledFor?: string;
   status: 'draft' | 'scheduled' | 'published' | 'failed';
   mediaUrls?: string[];
   platformSpecificContent?: Record<SocialPlatform, {

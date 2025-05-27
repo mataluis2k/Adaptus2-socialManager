@@ -16,6 +16,10 @@ interface AppState {
   removeNotification: (id: string) => void;
   loadInitialData: () => Promise<void>;
   setUser: (user: { id: string; email: string } | null) => void;
+  totalPostsCount: () => number;
+  connectedAccountsCount: () => number;
+  scheduledPostsCount: () => number;
+  publishedPostsCount: () => number;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -59,9 +63,11 @@ export const useStore = create<AppState>((set, get) => ({
 
   addPost: async (post) => {
     const user = get().user;
-    if (!user || !isSupabaseConfigured()) {
-      set((state) => ({ posts: [...state.posts, { ...post, id: Date.now().toString() }] }));
-      return;
+    if (!user) {
+      throw new Error('User is not authenticated. Cannot add post.');
+    }
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Cannot add post.');
     }
 
     try {
@@ -82,11 +88,11 @@ export const useStore = create<AppState>((set, get) => ({
 
   updatePost: async (post) => {
     const user = get().user;
-    if (!user || !isSupabaseConfigured()) {
-      set((state) => ({
-        posts: state.posts.map((p) => (p.id === post.id ? post : p))
-      }));
-      return;
+    if (!user) {
+      throw new Error('User is not authenticated. Cannot update post.');
+    }
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Cannot update post.');
     }
 
     try {
@@ -109,11 +115,11 @@ export const useStore = create<AppState>((set, get) => ({
 
   deletePost: async (id) => {
     const user = get().user;
-    if (!user || !isSupabaseConfigured()) {
-      set((state) => ({
-        posts: state.posts.filter((p) => p.id !== id)
-      }));
-      return;
+    if (!user) {
+      throw new Error('User is not authenticated. Cannot delete post.');
+    }
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Cannot delete post.');
     }
 
     try {
@@ -136,21 +142,11 @@ export const useStore = create<AppState>((set, get) => ({
 
   addAccount: async (account) => {
     const user = get().user;
-    if (!user || !isSupabaseConfigured()) {
-      set((state) => {
-        const existingIndex = state.accounts.findIndex(
-          (a) => a.platform === account.platform
-        );
-
-        if (existingIndex >= 0) {
-          const newAccounts = [...state.accounts];
-          newAccounts[existingIndex] = { ...account, id: Date.now().toString() };
-          return { accounts: newAccounts };
-        }
-
-        return { accounts: [...state.accounts, { ...account, id: Date.now().toString() }] };
-      });
-      return;
+    if (!user) {
+      throw new Error('User is not authenticated. Cannot add account.');
+    }
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Cannot add account.');
     }
 
     try {
@@ -183,11 +179,11 @@ export const useStore = create<AppState>((set, get) => ({
 
   removeAccount: async (id) => {
     const user = get().user;
-    if (!user || !isSupabaseConfigured()) {
-      set((state) => ({
-        accounts: state.accounts.filter((a) => a.id !== id)
-      }));
-      return;
+    if (!user) {
+      throw new Error('User is not authenticated. Cannot remove account.');
+    }
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Cannot remove account.');
     }
 
     try {
@@ -220,5 +216,11 @@ export const useStore = create<AppState>((set, get) => ({
 
   removeNotification: (id) => set((state) => ({
     notifications: state.notifications.filter((n) => n.id !== id)
-  }))
+  })),
+
+  // Selectors
+  totalPostsCount: () => get().posts.length,
+  connectedAccountsCount: () => get().accounts.length,
+  scheduledPostsCount: () => get().posts.filter(p => p.status === 'scheduled').length,
+  publishedPostsCount: () => get().posts.filter(p => p.status === 'published').length,
 }));
