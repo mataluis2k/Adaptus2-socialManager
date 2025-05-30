@@ -40,4 +40,19 @@ supabase db push
 
 Linting and unit tests require the dev dependencies defined in `package.json`. Ensure you run `npm install` before executing `npm run lint` or `npm test`.
 
+## Docker
+
+Build and run the application with Docker:
+
+```bash
+docker build -t adaptus2-social-manager .
+docker run --rm -p 80:80 adaptus2-social-manager
+```
+
+## CI/CD
+
+This repository uses GitHub Actions to automatically lint, test, and build on push and pull requests.
+
+See `.github/workflows/ci.yml` for details.
+
 

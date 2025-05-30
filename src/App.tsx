@@ -7,6 +7,7 @@ import History from './components/History';
 import Settings from './components/Settings';
 import { useStore } from './store';
 import { api, getStoredToken, setAuthToken } from './lib/api';
+import { TenantProvider } from './contexts/TenantContext';
 
 function App() {
   const [currentView, setCurrentView] = React.useState<'dashboard' | 'compose' | 'schedule' | 'history' | 'settings'>('dashboard');
@@ -37,7 +38,8 @@ function App() {
   }
 
   return (
-    <Layout currentUser={user} onNavigate={setCurrentView}>
+    <TenantProvider>
+      <Layout currentUser={user} onNavigate={setCurrentView}>
       {currentView === 'compose' && <Composer />}
       {currentView === 'schedule' && <Calendar />}
       {currentView === 'history' && <History />}
@@ -94,7 +96,8 @@ function App() {
           </div>
         </div>
       )}
-    </Layout>
+      </Layout>
+    </TenantProvider>
   );
 }
 

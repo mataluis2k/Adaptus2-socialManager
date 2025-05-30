@@ -6,7 +6,7 @@ interface AppState {
   posts: Post[];
   accounts: SocialAccount[];
   notifications: NotificationMessage[];
-  user: null | { id: string; email: string };
+  user: null | { id: string; email: string; tenantId: string };
   addPost: (post: Post) => Promise<void>;
   updatePost: (post: Post) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
@@ -15,7 +15,7 @@ interface AppState {
   addNotification: (notification: NotificationMessage) => void;
   removeNotification: (id: string) => void;
   loadInitialData: () => Promise<void>;
-  setUser: (user: { id: string; email: string } | null) => void;
+  setUser: (user: { id: string; email: string; tenantId: string } | null) => void;
   totalPostsCount: () => number;
   connectedAccountsCount: () => number;
   scheduledPostsCount: () => number;
@@ -73,7 +73,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('posts')
-        .insert([{ ...post, user_id: user.id }])
+        .insert([{ ...post, user_id: user.id, tenant_id: user.tenantId }])
         .select()
         .single();
 
@@ -98,7 +98,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { error } = await supabase
         .from('posts')
-        .update(post)
+        .update({ ...post, tenant_id: user.tenantId })
         .eq('id', post.id)
         .eq('user_id', user.id);
 
@@ -152,7 +152,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('accounts')
-        .upsert([{ ...account, user_id: user.id }])
+        .upsert([{ ...account, user_id: user.id, tenant_id: user.tenantId }])
         .select()
         .single();
 

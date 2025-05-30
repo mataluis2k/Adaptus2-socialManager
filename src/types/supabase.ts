@@ -3,9 +3,33 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 export interface Database {
   public: {
     Tables: {
+      tenants: {
+        Row: {
+          id: string;
+          name: string;
+          settings: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          settings?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          settings?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
       accounts: {
         Row: {
           id: string;
+          tenant_id: string;
           user_id: string;
           platform: string;
           username: string;
@@ -16,6 +40,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          tenant_id: string;
           user_id: string;
           platform: string;
           username: string;
@@ -26,6 +51,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          tenant_id?: string;
           user_id?: string;
           platform?: string;
           username?: string;
@@ -38,6 +64,7 @@ export interface Database {
       posts: {
         Row: {
           id: string;
+          tenant_id: string;
           user_id: string;
           content: string;
           platforms: string[];
@@ -50,6 +77,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          tenant_id: string;
           user_id: string;
           content: string;
           platforms: string[];
@@ -62,6 +90,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          tenant_id?: string;
           user_id?: string;
           content?: string;
           platforms?: string[];

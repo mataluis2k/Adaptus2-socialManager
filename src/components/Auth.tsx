@@ -23,7 +23,7 @@ const Auth: React.FC = () => {
         : await api.auth.login(email, password);
 
       setAuthToken(token);
-      setUser({ id: user.id, email: user.email });
+      setUser({ id: user.id, email: user.email, tenantId: user.tenantId });
       await loadInitialData();
       
       addNotification({
