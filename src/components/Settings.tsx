@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useStore } from '../store';
 import type { SocialPlatform } from '../types';
+import { api } from '../lib/api';
 
 const platforms: { id: SocialPlatform; name: string; description: string }[] = [
   {
@@ -27,54 +28,77 @@ const platforms: { id: SocialPlatform; name: string; description: string }[] = [
 
 const Settings: React.FC = () => {
   const accounts = useStore((state) => state.accounts);
-  const addAccount = useStore((state) => state.addAccount);
   const removeAccount = useStore((state) => state.removeAccount);
   const addNotification = useStore((state) => state.addNotification);
+  const loadInitialData = useStore((state) => state.loadInitialData);
+  const [isConnectingId, setIsConnectingId] = React.useState<SocialPlatform | null>(null);
+  const [isDisconnectingId, setIsDisconnectingId] = React.useState<string | null>(null);
 
-  const handleConnect = async (platform: SocialPlatform) => {
-    try {
-      // Simulated OAuth flow
-      const newAccount = {
-        id: Date.now().toString(),
-        platform,
-        connected: true,
-        username: `user_${platform}`,
-        profileImage: `https://api.dicebear.com/7.x/initials/svg?seed=${platform}`
-      };
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    const platform = params.get('platform') as SocialPlatform | null;
+    const message = params.get('message');
 
-      addAccount(newAccount);
-      addNotification({
-        id: Date.now().toString(),
-        type: 'success',
-        message: `Successfully connected to ${platform}`,
-        timestamp: new Date()
-      });
-    } catch (error) {
+    if (status && platform) {
+      if (status === 'success') {
+        loadInitialData(); // Refresh accounts
+        addNotification({
+          id: Date.now().toString(),
+          type: 'success',
+          message: message || `Successfully connected to ${platform}.`,
+          timestamp: new Date(),
+        });
+      } else if (status === 'error') {
+        addNotification({
+          id: Date.now().toString(),
+          type: 'error',
+          message: message || `Failed to connect to ${platform}. An unknown error occurred.`,
+          timestamp: new Date(),
+        });
+      }
+      setIsConnectingId(null); // Reset connecting state
+      window.history.replaceState({}, '', window.location.pathname); // Clear query params
+    }
+  }, [addNotification, loadInitialData]);
+
+  const handleConnect = (platform: SocialPlatform) => {
+    setIsConnectingId(platform);
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (!apiUrl) {
       addNotification({
         id: Date.now().toString(),
         type: 'error',
-        message: `Failed to connect to ${platform}`,
-        timestamp: new Date()
+        message: 'API URL is not configured. Cannot connect to social platforms.',
+        timestamp: new Date(),
       });
+      setIsConnectingId(null);
+      return;
     }
+    const redirectUrl = `${apiUrl}/api/connect/${platform}`;
+    window.location.href = redirectUrl;
   };
 
   const handleDisconnect = async (accountId: string, platform: SocialPlatform) => {
+    setIsDisconnectingId(accountId);
     try {
+      await api.accounts.delete(accountId);
       removeAccount(accountId);
       addNotification({
         id: Date.now().toString(),
-        type: 'info',
-        message: `Disconnected from ${platform}`,
+        type: 'success', // Changed to success for consistency
+        message: `Disconnected from ${platform} successfully.`,
         timestamp: new Date()
       });
-    } catch (error) {
+    } catch (error: any) {
       addNotification({
         id: Date.now().toString(),
         type: 'error',
-        message: `Failed to disconnect from ${platform}`,
+        message: `Failed to disconnect from ${platform}: ${error.message}`,
         timestamp: new Date()
       });
+    } finally {
+      setIsDisconnectingId(null);
     }
   };
 
@@ -113,17 +137,19 @@ const Settings: React.FC = () => {
                       </div>
                       <button
                         onClick={() => handleDisconnect(account.id, platform.id)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        disabled={isDisconnectingId === account.id}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                       >
-                        Disconnect
+                        {isDisconnectingId === account.id ? 'Disconnecting...' : 'Disconnect'}
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={() => handleConnect(platform.id)}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
+                      disabled={isConnectingId === platform.id}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
                     >
-                      Connect
+                      {isConnectingId === platform.id ? 'Connecting...' : 'Connect'}
                     </button>
                   )}
                 </div>

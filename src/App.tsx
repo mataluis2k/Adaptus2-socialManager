@@ -48,19 +48,19 @@ function App() {
             <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-lg border border-indigo-100">
               <h3 className="text-sm font-medium text-indigo-600">Total Posts</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">
-                {useStore((state) => state.posts.length)}
+                {useStore((state) => state.totalPostsCount())}
               </p>
             </div>
             <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-lg border border-indigo-100">
               <h3 className="text-sm font-medium text-indigo-600">Connected Accounts</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">
-                {useStore((state) => state.accounts.length)}
+                {useStore((state) => state.connectedAccountsCount())}
               </p>
             </div>
             <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-lg border border-indigo-100">
               <h3 className="text-sm font-medium text-indigo-600">Scheduled Posts</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">
-                {useStore((state) => state.posts.filter(p => p.status === 'scheduled').length)}
+                {useStore((state) => state.scheduledPostsCount())}
               </p>
             </div>
           </div>
